@@ -1,6 +1,6 @@
 import uuid
 from contextlib import asynccontextmanager
-
+import asyncio
 import httpx
 import structlog
 from fastapi import FastAPI, Request, Response, status
@@ -26,6 +26,8 @@ async def lifespan(app: FastAPI):
         pool_size=5,
         max_overflow=5,
         pool_pre_ping=True,
+        pool_timeout=10,
+        connect_args={"timeout": 10, "command_timeout": 10},
     )
     async with app.state.db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -34,7 +36,7 @@ async def lifespan(app: FastAPI):
 
     # fail fast if the DB is unreachable, rather than discovering it on request 1
     async with app.state.db_engine.connect() as conn:
-        await conn.execute(text("SELECT 1"))
+        await asyncio.wait_for(conn.execute(text("SELECT 1")), timeout=10.0)
 
     log.info("startup_complete")
     yield

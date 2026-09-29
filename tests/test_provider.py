@@ -8,7 +8,7 @@ async def main():
     provider = LiteLLMProvider("openrouter/deepseek/deepseek-chat")
 
     result = await provider.complete(
-        messages=[{"role": "user", "content": "Say hello in exactly 5 words."}]
+        messages=[{"role": "user", "content": "Say hello in exactly 3 words."}]
     )
 
     print("Content:", result.content)
